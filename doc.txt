@@ -1,0 +1,212 @@
+🔧 1. Understand What the Shell (witsshell) Must Do
+
+Your shell (witsshell) must:
+
+Run in interactive mode (prompt: witsshell>) or batch mode (read commands from a file).
+
+Repeatedly:
+
+Show prompt (interactive mode).
+
+Parse a line of user input.
+
+Execute that line as a program (with arguments).
+
+Wait for the program to finish.
+
+Exit on the built-in command exit.
+
+Think of it like this:
+
+int main(int argc, char *argv[]) {
+    if (argc == 1) {
+        // Interactive Mode
+    } else if (argc == 2) {
+        // Batch Mode (read commands from argv[1])
+    } else {
+        // Too many arguments: show error and exit
+    }
+}
+
+🧠 2. Figure Out the Connection Between the Shell and Buddy Allocator
+
+This is where it’s easy to get confused.
+
+The file buddy.c and buddy.h are meant to replace or augment malloc/free in your shell. So the shell might be using the buddy allocator to manage memory instead of standard allocation.
+
+You need to:
+
+Build witsshell.c to run user commands.
+
+Use the functions balloc and bfree from buddy.c when you need to allocate memory (e.g., for storing user input, command arguments, etc.).
+
+You don’t start in buddy.c — that's just a memory tool. You start with the shell logic.
+
+🗂 3. Project Folder Structure
+
+Your folder probably looks something like:
+
+project/
+│
+├── witsshell.c         # Your shell program (you will write this)
+├── buddy.c             # Given - implements buddy allocator
+├── buddy.h             # Header for buddy allocator
+└── Makefile            # (Optional) For building everything
+
+🧪 4. Development Plan – Start Small
+Step 1: Build the basic shell loop in witsshell.c
+
+Start with just reading input and printing it back.
+
+Add command execution with fork() + execvp() + waitpid().
+
+Add support for exit built-in.
+
+Step 2: Add batch mode
+
+Check if a file is passed as argument.
+
+Read lines from file instead of standard input.
+
+No prompt in this mode.
+
+Step 3: Add input parsing
+
+Split input line into command and arguments.
+
+Use strtok() or equivalent.
+
+Step 4: Use buddy allocator
+
+Replace malloc() calls with balloc().
+
+Replace free() calls with bfree().
+
+📘 5. Track What You Still Need to Do in buddy.c
+
+In buddy.c, you’re missing the implementation for:
+
+new(): Create and initialize a buddy allocator.
+
+level(int req): Return the smallest block level that can hold req bytes.
+
+balloc(size): Allocate memory using buddy system.
+
+bfree(ptr): Free memory back into buddy system.
+
+Don't worry about these yet if you're unsure — you can mock balloc() using malloc() first, and come back to implement buddy later.
+
+✅ What You Should Do First
+
+Start with the following steps in order:
+
+Create witsshell.c and stub out main() with argc check.
+
+Implement interactive mode loop:
+
+Show prompt.
+
+Read input.
+
+Parse command.
+
+Use fork()/execvp()/waitpid() to run it.
+
+Add support for batch mode (reading from a file).
+
+Add support for the exit command.
+
+Only after that: integrate buddy allocator (replace malloc/free).
+
+Then implement missing logic in buddy.c.
+
+🧰 Helpful Functions for Shell
+
+You'll likely use:
+
+fgets() – read user input.
+
+strtok() – parse input into tokens.
+
+fork() – create new process.
+
+execvp() – execute command-finding path automatically.
+
+waitpid() – wait for child.
+
+strcmp() – compare strings (for exit command).
+
+
+-------------------------------------------------------------------------------------------------
+
+1.Your shell does NOT implement commands like ls, echo, or cat.
+
+    You don’t write the logic for listing files or printing text yourself.
+    Those are programs that already exist on the system (usually in /bin/ or /usr/bin/).
+
+2.What your shell does:
+
+    Reads a command line from the user (or batch file).
+    Parses it into command + arguments (argv_tk).
+    Searches a path list (like /bin/) to find the executable file.
+    Forks a child process and calls execv() to run the found program.
+    Waits for the child to finish.
+    Handles built-in commands like exit yourself.
+
+-----------------------------------------------------------------------------------------------------------------
+#############################  Buddy Allocator ##############################
+
+Example:
+
+    Original 1 KB block starts at address 0x1000
+
+    Split → left half = 0x1000 (original block)
+
+    Right half (buddy) = 0x1200 (buddy_block)
+
+
+Initialize the right half of the split:
+
+Mark it Free
+
+Set level = i (current level = 4 → size = 512B)
+
+Insert into freelist[4] at the head of the linked list
+
+Now freelist[4] contains the right 512B block
+
+    buddy_block->status = Free;
+    buddy_block->level = i;
+    buddy_block->next = free_lists[i];
+    buddy_block->prev = NULL;
+    if(free_lists[i]){
+    free_lists[i]->prev = buddy_block;
+    }
+    free_lists[i] = buddy_block;
+
+
+
+Update the original block (left half):
+
+Its size is now 512B → level = 4
+
+Reset links because it’s being handled separately
+
+    block->level = i;
+    block->next = NULL;
+    block->prev = NULL;
+
+
+
+
+Mark the final block as allocated
+
+Left block of size 128B is now Taken
+
+hide(block) returns pointer after the header, i.e., the usable memory for the user
+
+User now gets 128B usable memory
+
+    block->status = Taken;
+    return hide(block); // return pointer to memory after the header
+

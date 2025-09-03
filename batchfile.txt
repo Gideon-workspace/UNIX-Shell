@@ -1,0 +1,7 @@
+lines are vey important in drawing
+echo Hello from batch I hope this file is working okay
+Did you know that the earth is not sphere/round cause when you do math the gravitational acceleration is not the same in some parts of the earth  
+exit
+If this line is printed then something is wrong
+
+
