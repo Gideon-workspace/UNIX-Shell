@@ -1,10 +1,8 @@
 <h1 align="center">Hi 👋, I'm Mashego Gideon Mabeloane</h1>
 <h3 align="center">A passionate Software Engineer</h3>
 <p align="center">
-  <img src="<img width="512" height="512" alt="pngwing com" src="https://github.com/user-attachments/assets/d370cc0c-c141-4d5c-abb4-cf226864ebbe" />
-" alt="Passionate Developer" width="300"/>
+  <img src="pngwing.com.png"/>
 </p>
-
 - 🔭 I’m currently working on **UNIX-Shell**
 
 - 🌱 I’m currently studying **Computer Science**
