@@ -1,4 +1,4 @@
-<h1 align="center">Hi 👋, I'm Mashego Gideon Mabeloane</h1>
+h1 align="center">Hi 👋, I'm Mashego Gideon Mabeloane</h1>
 <h3 align="center">A passionate Software Engineer</h3>
 
 - 🔭 I’m currently working on **UNIX-Shell**
