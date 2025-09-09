@@ -1,5 +1,8 @@
 <h1 align="center">Hi 👋, I'm Mashego Gideon Mabeloane</h1>
 <h3 align="center">A passionate Software Engineer</h3>
+<p align="center">
+  <img src="https://media.giphy.com/media/L0ZxU7Bov0c00/giphy.gif" alt="Passionate Developer" width="300"/>
+</p>
 
 - 🔭 I’m currently working on **UNIX-Shell**
 
