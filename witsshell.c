@@ -44,7 +44,25 @@ void update_path(char **args, int argc) {
     PATHS[PATH_count] = NULL;
 }
 
-// Process a single line of commands (supports &, builtins, redirection)
+// adding space around a command where '>' is close to characters to salighn with my already exiting code
+char* preprocess_redirection(const char* cmd) {
+    size_t len = strlen(cmd);
+    char* new_cmd = malloc(len * 3 + 1); 
+    size_t j = 0;
+    for (size_t i = 0; i < len; i++) {
+        if (cmd[i] == '>') {
+            if (i > 0 && new_cmd[j-1] != ' ') new_cmd[j++] = ' ';
+            new_cmd[j++] = '>';
+            if (i + 1 < len && cmd[i+1] != ' ') new_cmd[j++] = ' ';
+        } else {
+            new_cmd[j++] = cmd[i];
+        }
+    }
+    new_cmd[j] = '\0';
+    return new_cmd;
+}
+
+
 void process_command(char *cmd_line) {
     // Split by '&' for parallel commands
     char *parallel_cmds[100];
@@ -63,10 +81,13 @@ void process_command(char *cmd_line) {
         char *trimmed = parallel_cmds[i];
         while (*trimmed == ' ' || *trimmed == '\t') trimmed++;
 
+        // Preprocess '>' so it becomes its own token
+        char *preprocessed = preprocess_redirection(trimmed);
+
         // Tokenize command
         int argc_tk = 0, capacity = 4;
         char **argv_tk = malloc(capacity * sizeof(char*));
-        char *token = strtok(trimmed, " \t\n");
+        char *token = strtok(preprocessed, " \t\n");
         while (token) {
             if (argc_tk >= capacity) {
                 capacity *= 2;
@@ -78,15 +99,15 @@ void process_command(char *cmd_line) {
         argv_tk[argc_tk] = NULL;
 
         // Remove surrounding double quotes from each argument
-        for (int i = 0; i < argc_tk; i++) {
-            size_t len = strlen(argv_tk[i]);
-            if (len >= 2 && argv_tk[i][0] == '"' && argv_tk[i][len - 1] == '"') {
-            // Shift string left by 1 and replace last char with null
-            memmove(argv_tk[i], argv_tk[i] + 1, len - 2);
-            argv_tk[i][len - 2] = '\0';
+        for (int j = 0; j < argc_tk; j++) {
+            size_t len = strlen(argv_tk[j]);
+            if (len >= 2 && argv_tk[j][0] == '"' && argv_tk[j][len - 1] == '"') {
+                memmove(argv_tk[j], argv_tk[j] + 1, len - 2);
+                argv_tk[j][len - 2] = '\0';
             }
         }
 
+        free(preprocessed); // done with preprocessed string
 
         if (argc_tk == 0) { free(argv_tk); continue; }
 
@@ -124,7 +145,6 @@ void process_command(char *cmd_line) {
             continue;
         }
 
-        // Resolve executable path
         // Resolve executable path
         char *full_path = NULL;
         for (int j = 0; PATHS && PATHS[j]; j++) {
@@ -173,7 +193,11 @@ void process_command(char *cmd_line) {
             print_error();
             exit(1);
         } else if (pid > 0) {
-            if (!is_background) pids[pid_count++] = pid; 
+            if (!is_background){
+                 waitpid(pid, NULL, 0); // The parent should waits immediately for this child to finish before moving to the next command in the same line.
+            }else{
+                pids[pid_count++] = pid; //The parent does not wait immediately
+            } 
         } else {
             print_error();
         }
